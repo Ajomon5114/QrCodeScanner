@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Attendance System{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/layout.css?v=2">
+    <link rel="stylesheet" href="/static/fa.min.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="layout-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-qrcode"></i>
+                <h2>ScanTrack</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="sidebar-link {% if request.path == '/' %}active{% endif %}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="/attendance/" class="sidebar-link {% if '/attendance' in request.path %}active{% endif %}">
+                    <i class="fas fa-clipboard-list"></i> Attendance Report
+                </a>
+                
+                {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
+                <a href="/scanner/" class="sidebar-link {% if '/scanner' in request.path %}active{% endif %}">
+                    <i class="fas fa-camera"></i> Launch Scanner
+                </a>
+                <a href="/delegates/" class="sidebar-link {% if '/delegates' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i> Delegates List
+                </a>
+                {% endif %}
+
+                {% if request.user.is_superuser %}
+                <div class="sidebar-divider">Super Admin</div>
+                <a href="/admin-upload/" class="sidebar-link {% if '/admin-upload' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-excel"></i> Upload Excel
+                </a>
+                <a href="/barcodes/" class="sidebar-link {% if '/barcodes' in request.path %}active{% endif %}">
+                    <i class="fas fa-qrcode"></i> Print QR Codes
+                </a>
+
+                <a href="/system-users/" class="sidebar-link {% if '/system-users' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i> System Users
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <div class="navbar-title">
+                    {% block page_title %}Dashboard{% endblock %}
+                </div>
+                <div class="navbar-user">
+                    <span><i class="fas fa-user-circle"></i> {{ request.user.username|title }}</span>
+                    <form action="/accounts/logout/" method="post" style="margin: 0; display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

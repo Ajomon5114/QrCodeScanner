@@ -1,0 +1,21 @@
+# Virtual environment
+.venv/
+env/
+venv/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Python
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+*.csv
+
+# Media / Uploads
+media/
+static/images/delegates/

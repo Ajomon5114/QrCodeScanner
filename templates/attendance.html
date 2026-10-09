@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Report{% endblock %}
+{% block page_title %}Attendance Report{% endblock %}
+
+{% block content %}
+<style>
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        align-items: flex-end;
+    }
+
+    .filter-bar select,
+    .filter-bar input[type=date],
+    .filter-bar input[type=text] {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        padding: 9px 14px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        min-width: 160px;
+        box-sizing: border-box;
+    }
+
+    .filter-bar select option {
+        background: #1e293b;
+        color: white;
+    }
+
+    .filter-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .filter-btn:hover {
+        opacity: 0.85;
+    }
+
+    .clear-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .att-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .att-table th {
+        padding: 10px 14px;
+        text-align: left;
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .att-table td {
+        padding: 11px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+        vertical-align: middle;
+    }
+
+    .att-table tr:hover td {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .badge-present {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+        border-radius: 20px;
+        padding: 2px 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .badge-absent {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+        border-radius: 20px;
+        padding: 2px 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #3b82f6;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    .mark-btn {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+        border-radius: 6px;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .mark-btn:hover {
+        background: rgba(34, 197, 94, 0.3);
+    }
+
+    .reset-btn {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+        border-radius: 6px;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .reset-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+</style>
+
+<div class="container" style="max-width: 1100px; margin: 0; width: 100%;">
+    <div
+        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h2 style="margin:0; font-size:1.4rem;">Attendance Report</h2>
+            <p style="margin:4px 0 0; color:#94a3b8; font-size:0.9rem;">{{ records|length }} record(s) found for the
+                selected filters</p>
+        </div>
+        {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
+        <div style="display:flex; gap:10px;">
+            <a href="?{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.church %}church={{ request.GET.church }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}export=csv"
+                style="text-decoration:none; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:white; padding:10px 16px; border-radius:8px; font-weight:600;"><i
+                    class="fas fa-file-csv"></i> Export Filtered CSV</a>
+            <a href="?{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.church %}church={{ request.GET.church }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}export=pdf"
+                target="_blank" style="text-decoration:none; background:rgba(220,38,38,0.15); border:1px solid rgba(220,38,38,0.3); color:#fca5a5; padding:10px 16px; border-radius:8px; font-weight:600;"><i
+                    class="fas fa-file-pdf"></i> Export Filtered PDF</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Filters -->
+    <form method="get">
+        <div class="filter-bar">
+            <div>
+                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">SEARCH</div>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Name, ID...">
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">DATE</div>
+                <input type="date" name="date" value="{{ selected_date }}">
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">CHURCH</div>
+                <select name="church">
+                    <option value="">All Churches</option>
+                    {% for c in churches %}
+                    <option value="{{ c }}" {% if c == selected_church %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">CATEGORY</div>
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>
+                        {% if cat|upper == 'PB' %}Presbyters{% elif cat|upper == 'LP' %}Laypersons{% else %}{{ cat }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">STATUS</div>
+                <select name="status">
+                    <option value="">All</option>
+                    <option value="attended" {% if selected_status == 'attended' %}selected{% endif %}>Present</option>
+                    <option value="absent" {% if selected_status == 'absent' %}selected{% endif %}>Absent</option>
+                </select>
+            </div>
+            <button class="filter-btn" type="submit"><i class="fas fa-filter"></i> Apply</button>
+            <a href="/attendance/" class="clear-btn">Clear</a>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div
+        style="background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:16px; overflow:hidden;">
+        <table class="att-table">
+            <thead>
+                <tr>
+                    <th>SL No</th>
+                    <th>Delegate</th>
+                    <th>Church</th>
+                    <th>Constituency</th>
+                    <th>Category</th>
+                    <th>Seat</th>
+                    <th>Scan Time</th>
+                    <th>Status</th>
+                    {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
+                    <th>Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in records %}
+                <tr>
+                    <td style="color:#94a3b8; font-weight:600; font-size:0.9rem;">{{ row.user.slno|default:'-' }}</td>
+                    <td>
+                        <img class="avatar-sm" src="/static/images/delegates/{{ row.user.user_id }}.jpg"
+                            onerror="this.style.display='none'">
+                        <strong>{{ row.user.name }}</strong>
+                    </td>
+                    <td>{{ row.user.church|default:'-' }}</td>
+                    <td>{{ row.user.constituency|default:'-' }}</td>
+                    <td>
+                        {% if row.user.category|upper == 'PB' %}
+                            Presbyters
+                        {% elif row.user.category|upper == 'LP' %}
+                            Laypersons
+                        {% else %}
+                            {{ row.user.category|default:'-' }}
+                        {% endif %}
+                    </td>
+                    <td>{{ row.user.seat_no|default:'-' }}</td>
+                    <td style="color:#94a3b8; font-size:0.85rem;">
+                        {% if row.scan_time %}{{ row.scan_time|date:"d M Y, h:i A" }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if row.attended %}
+                        <span class="badge-present">Present</span>
+                        {% else %}
+                        <span class="badge-absent">Absent</span>
+                        {% endif %}
+                    </td>
+                    {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
+                    <td>
+                        {% if row.attended %}
+                        <form method="post" action="/attendance/reset/{{ row.user.user_id }}/" style="display:inline;"
+                            onsubmit="return confirm('Reset attendance for {{ row.user.name }}?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="date" value="{{ selected_date }}">
+                            <button type="submit" class="reset-btn"><i class="fas fa-undo"></i> Reset</button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="/attendance/mark/{{ row.user.user_id }}/" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="mark-btn"><i class="fas fa-check"></i> Mark</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:40px; color:#94a3b8;">No records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

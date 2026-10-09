@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Import Users{% endblock %}
+{% block page_title %}Upload Excel Data{% endblock %}
+
+{% block extra_head %}
+<style>
+    .admin-section {
+        background: rgba(15, 23, 42, 0.6);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .admin-section:hover {
+        border-color: var(--primary);
+        background: rgba(15, 23, 42, 0.8);
+    }
+    input[type="file"] {
+        display: none;
+    }
+    .file-label {
+        display: inline-block;
+        background: var(--primary);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+        margin-bottom: 10px;
+    }
+    .file-label:hover {
+        background: var(--primary-hover);
+    }
+    .upload-btn {
+        background: var(--success);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: background 0.3s;
+        width: 100%;
+    }
+    .upload-btn:hover {
+        background: #059669;
+    }
+    .upload-btn:disabled {
+        background: var(--text-muted);
+        cursor: not-allowed;
+    }
+    #file-name {
+        display: block;
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    .note {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 15px;
+        text-align: left;
+        background: rgba(255,255,255,0.05);
+        padding: 15px;
+        border-radius: 8px;
+    }
+    .note ul {
+        margin: 5px 0 0 0;
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 0 auto;">
+    <div class="header">
+        <h1>Admin Panel</h1>
+        <p>Upload Users from Excel</p>
+    </div>
+    
+    <div class="admin-section">
+        <form id="upload-form">
+            <label for="excel-file" class="file-label">Choose Excel File</label>
+            <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" required>
+            <span id="file-name">No file selected</span>
+            
+            <div style="margin-top: 20px;">
+                <button type="submit" class="upload-btn" id="upload-btn">Upload and Import</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="alert-box" class="alert-box" style="display: none;"></div>
+
+    <div class="note">
+        <strong>Format required:</strong>
+        <ul>
+            <li>File can be an Excel file (.xlsx) or CSV (.csv)</li>
+            <li>Expected columns: <code>slno</code>, <code>name</code>, <code>image name</code>, <code>church</code>, <code>seat no</code>, <code>constituency</code>, <code>category</code></li>
+        </ul>
+    </div>
+    
+    <div class="members-section" style="margin-top: 40px; text-align: left;">
+        <h2 style="margin-bottom: 20px; font-size: 1.5rem;">Registered Members</h2>
+        
+        <div style="overflow-x: auto;">
+            <table class="members-table">
+                <thead>
+                    <tr>
+                        <th>SL No</th>
+                        <th>Name</th>
+                        <th>Church</th>
+                        <th>Seat No</th>
+                        <th>Constituency</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.slno|default:'-' }}</td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.church|default:'-' }}</td>
+                        <td>{{ user.seat_no|default:'-' }}</td>
+                        <td>{{ user.constituency|default:'-' }}</td>
+                        <td>
+                            {% if user.category|upper == 'PB' %}
+                                Presbyters
+                            {% elif user.category|upper == 'LP' %}
+                                Laypersons
+                            {% else %}
+                                {{ user.category|default:'-' }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No members found. Upload an Excel or CSV file to begin.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const fileInput = document.getElementById('excel-file');
+        const fileNameDisplay = document.getElementById('file-name');
+        const uploadForm = document.getElementById('upload-form');
+        const uploadBtn = document.getElementById('upload-btn');
+        const alertBox = document.getElementById('alert-box');
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDisplay.textContent = e.target.files[0].name;
+            } else {
+                fileNameDisplay.textContent = 'No file selected';
+            }
+        });
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (fileInput.files.length === 0) {
+                showError('Please select a file first', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            alertBox.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/upload_users', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showError(data.message, 'success');
+                    fileInput.value = '';
+                    fileNameDisplay.textContent = 'No file selected';
+                    setTimeout(() => window.location.reload(), 1500); // Reload to show new users
+                } else {
+                    showError(data.error || 'Upload failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network Error. Please try again.', 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload and Import';
+            }
+        });
+
+        function showError(message, type) {
+            alertBox.style.animation = 'none';
+            alertBox.offsetHeight; 
+            alertBox.style.animation = null;
+
+            alertBox.textContent = message;
+            
+            if (type === 'success') {
+                alertBox.style.background = 'rgba(16, 185, 129, 0.1)';
+                alertBox.style.color = '#6ee7b7';
+                alertBox.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+                alertBox.className = 'alert-box';
+            } else {
+                alertBox.style.background = '';
+                alertBox.style.color = '';
+                alertBox.style.border = '';
+                alertBox.className = `alert-box alert-${type}`;
+            }
+            
+            alertBox.style.display = 'block';
+
+            clearTimeout(window.errorTimeout);
+            window.errorTimeout = setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}
