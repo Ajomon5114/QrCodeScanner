@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Attendance Report{% endblock %}
+{% block title %}CSI MKD Council 2026 - Attendance Tracker{% endblock %}
 {% block page_title %}Attendance Report{% endblock %}
 
 {% block content %}
@@ -11,13 +11,18 @@
         margin-bottom: 24px;
         align-items: flex-end;
     }
+    @media (max-width: 850px) {
+        .filter-bar {
+            align-items: stretch !important;
+        }
+    }
 
     .filter-bar select,
     .filter-bar input[type=date],
     .filter-bar input[type=text] {
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: white;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
         padding: 9px 14px;
         border-radius: 8px;
         font-size: 0.9rem;
@@ -26,13 +31,13 @@
     }
 
     .filter-bar select option {
-        background: #1e293b;
-        color: white;
+        background: var(--card-bg);
+        color: var(--text-main);
     }
 
     .filter-btn {
         background: var(--primary);
-        color: white;
+        color: #ffffff;
         border: none;
         padding: 10px 20px;
         border-radius: 8px;
@@ -45,9 +50,9 @@
     }
 
     .clear-btn {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: white;
+        background: var(--hover-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
         padding: 10px 16px;
         border-radius: 8px;
         cursor: pointer;
@@ -64,22 +69,22 @@
     .att-table th {
         padding: 10px 14px;
         text-align: left;
-        color: #94a3b8;
+        color: var(--text-muted);
         font-weight: 600;
         font-size: 0.75rem;
         text-transform: uppercase;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--border);
     }
 
     .att-table td {
         padding: 11px 14px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        color: #e2e8f0;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-main);
         vertical-align: middle;
     }
 
     .att-table tr:hover td {
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--hover-bg);
     }
 
     .badge-present {
@@ -143,22 +148,28 @@
     }
 </style>
 
-<div class="container" style="max-width: 1100px; margin: 0; width: 100%;">
+<div class="container" style="max-width: 1100px; margin: 0 auto; width: 100%; box-sizing: border-box;">
     <div
         style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <div>
             <h2 style="margin:0; font-size:1.4rem;">Attendance Report</h2>
-            <p style="margin:4px 0 0; color:#94a3b8; font-size:0.9rem;">{{ records|length }} record(s) found for the
+            <p style="margin:4px 0 0; color: var(--text-muted); font-size:0.9rem;">{{ records|length }} record(s) found for the
                 selected filters</p>
         </div>
         {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap: wrap;">
             <a href="?{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.church %}church={{ request.GET.church }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}export=csv"
-                style="text-decoration:none; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:white; padding:10px 16px; border-radius:8px; font-weight:600;"><i
+                style="text-decoration:none; background: var(--hover-bg); border: 1px solid var(--border); color: var(--text-main); padding:10px 16px; border-radius:8px; font-weight:600;"><i
                     class="fas fa-file-csv"></i> Export Filtered CSV</a>
             <a href="?{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.church %}church={{ request.GET.church }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}export=pdf"
-                target="_blank" style="text-decoration:none; background:rgba(220,38,38,0.15); border:1px solid rgba(220,38,38,0.3); color:#fca5a5; padding:10px 16px; border-radius:8px; font-weight:600;"><i
+                target="_blank"
+                style="text-decoration:none; background:rgba(220,38,38,0.15); border:1px solid rgba(220,38,38,0.3); color:#fca5a5; padding:10px 16px; border-radius:8px; font-weight:600;"><i
                     class="fas fa-file-pdf"></i> Export Filtered PDF</a>
+            <form method="POST" action="{% url 'reset_all_attendance' %}" onsubmit="return confirm('WARNING: Are you sure you want to completely RESET ALL attendance for {{ selected_date }}? This cannot be undone.');" style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="date" value="{{ selected_date }}">
+                <button type="submit" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer;"><i class="fas fa-trash-restore"></i> Reset All Attendance</button>
+            </form>
         </div>
         {% endif %}
     </div>
@@ -167,38 +178,42 @@
     <form method="get">
         <div class="filter-bar">
             <div>
-                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">SEARCH</div>
+                <div style="font-size:0.75rem; color: var(--text-muted); margin-bottom:4px;">SEARCH</div>
                 <input type="text" name="search" value="{{ search_query }}" placeholder="Name, ID...">
             </div>
             <div>
-                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">DATE</div>
+                <div style="font-size:0.75rem; color: var(--text-muted); margin-bottom:4px;">DATE</div>
                 <input type="date" name="date" value="{{ selected_date }}">
             </div>
             <div>
-                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">CHURCH</div>
+                <div style="font-size:0.75rem; color: var(--text-muted); margin-bottom:4px;">CHURCH</div>
                 <select name="church">
                     <option value="">All Churches</option>
                     {% for c in churches %}
+                    <!-- prettier-ignore -->
                     <option value="{{ c }}" {% if c == selected_church %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div>
-                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">CATEGORY</div>
+                <div style="font-size:0.75rem; color: var(--text-muted); margin-bottom:4px;">CATEGORY</div>
                 <select name="category">
                     <option value="">All Categories</option>
                     {% for cat in categories %}
+                    <!-- prettier-ignore -->
                     <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>
-                        {% if cat|upper == 'PB' %}Presbyters{% elif cat|upper == 'LP' %}Laypersons{% else %}{{ cat }}{% endif %}
+                        {% if cat|upper == 'PB' %}Presbyters{% elif cat|upper == 'LP' %}Laypersons{% elif cat|upper == 'DO' %}Diocesan Officers{% elif cat|upper == 'NOM' %}Nominee{% else %}{{ cat }}{% endif %}
                     </option>
                     {% endfor %}
                 </select>
             </div>
             <div>
-                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">STATUS</div>
+                <div style="font-size:0.75rem; color: var(--text-muted); margin-bottom:4px;">STATUS</div>
                 <select name="status">
                     <option value="">All</option>
+                    <!-- prettier-ignore -->
                     <option value="attended" {% if selected_status == 'attended' %}selected{% endif %}>Present</option>
+                    <!-- prettier-ignore -->
                     <option value="absent" {% if selected_status == 'absent' %}selected{% endif %}>Absent</option>
                 </select>
             </div>
@@ -209,7 +224,7 @@
 
     <!-- Table -->
     <div
-        style="background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:16px; overflow:hidden;">
+        style="background: var(--card-bg); border: 1px solid var(--border); border-radius:16px; overflow-x:auto;">
         <table class="att-table">
             <thead>
                 <tr>
@@ -229,25 +244,29 @@
             <tbody>
                 {% for row in records %}
                 <tr>
-                    <td style="color:#94a3b8; font-weight:600; font-size:0.9rem;">{{ row.user.slno|default:'-' }}</td>
+                    <td style="color: var(--text-muted); font-weight:600; font-size:0.9rem;">{{ row.user.slno|default:'-' }}</td>
                     <td>
-                        <img class="avatar-sm" src="/static/images/delegates/{{ row.user.user_id }}.jpg"
+                        <img class="avatar-sm" src="/static/images/{{ row.user.user_id }}.jpg"
                             onerror="this.style.display='none'">
                         <strong>{{ row.user.name }}</strong>
                     </td>
                     <td>{{ row.user.church|default:'-' }}</td>
                     <td>{{ row.user.constituency|default:'-' }}</td>
-                    <td>
+                    <td style="white-space: nowrap;">
                         {% if row.user.category|upper == 'PB' %}
-                            Presbyters
+                        Presbyters
                         {% elif row.user.category|upper == 'LP' %}
-                            Laypersons
+                        Laypersons
+                        {% elif row.user.category|upper == 'DO' %}
+                        Diocesan Officers
+                        {% elif row.user.category|upper == 'NOM' %}
+                        Nominee
                         {% else %}
-                            {{ row.user.category|default:'-' }}
+                        {{ row.user.category|default:'-' }}
                         {% endif %}
                     </td>
                     <td>{{ row.user.seat_no|default:'-' }}</td>
-                    <td style="color:#94a3b8; font-size:0.85rem;">
+                    <td style="color: var(--text-muted); font-size:0.85rem;">
                         {% if row.scan_time %}{{ row.scan_time|date:"d M Y, h:i A" }}{% else %}—{% endif %}
                     </td>
                     <td>
@@ -277,7 +296,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:40px; color:#94a3b8;">No records found.</td>
+                    <td colspan="8" style="text-align:center; padding:40px; color: var(--text-muted);">No records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

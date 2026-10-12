@@ -23,7 +23,7 @@
     }
     .id-card-header {
         background: var(--primary);
-        color: white;
+        color: var(--text-main);
         padding: 20px 20px 60px 20px;
     }
     .id-card-header h2 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
@@ -56,7 +56,7 @@
         margin-bottom: 20px;
     }
     .detail-item { display: flex; flex-direction: column; }
-    .detail-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;}
+    .detail-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;}
     .detail-value { font-size: 0.9rem; font-weight: 600; color: #334155; }
     
     .id-card-qr { margin-top: 10px; }
@@ -64,10 +64,24 @@
     .print-controls { text-align: center; margin-top: 30px; }
     
     @media print {
+        @page { margin: 5mm; }
         .sidebar, .top-navbar, .print-controls { display: none !important; }
-        .layout-wrapper, .main-content, .content-wrapper, .container { display: block !important; margin: 0 !important; padding: 0 !important; }
-        body { background: white; }
-        .badge-container { padding: 0; align-items: flex-start; justify-content: flex-start; }
+        .layout-wrapper, .main-content, .content-wrapper, .container { 
+            display: block !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            height: auto !important; 
+            min-height: 0 !important; 
+            overflow: visible !important; 
+        }
+        body { 
+            background: white; 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .badge-container { padding: 20px; align-items: flex-start; justify-content: flex-start; }
         .id-card { box-shadow: none; border: 1px solid #e2e8f0; break-inside: avoid; }
     }
 </style>
@@ -79,7 +93,7 @@
                 <h2>ScanTrack Badge</h2>
             </div>
             <div class="id-card-body">
-                <img class="id-card-avatar" src="{% if user.image_name %}/static/images/delegates/{{ user.image_name }}{% else %}/static/images/delegates/{{ user.user_id }}.jpg{% endif %}" alt="Avatar" onerror="if(!this.dataset.retried){ this.dataset.retried = true; this.src = '/static/images/delegates/{{ user.user_id }}.jpg'; } else { this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'; }">
+                <img class="id-card-avatar" src="{% if user.image_name %}/static/images/{{ user.image_name }}{% else %}/static/images/{{ user.user_id }}.jpg{% endif %}" alt="Avatar" onerror="if(!this.dataset.retried){ this.dataset.retried = true; this.src = '/static/images/{{ user.user_id }}.jpg'; } else { this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'; }">
                 <h3 class="id-card-name">{{ user.name }}</h3>
                 <p class="id-card-role">Delegate</p>
                 
@@ -93,16 +107,26 @@
                         <span class="detail-value">{{ user.slno|default:'-' }}</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">District</span>
-                        <span class="detail-value">{{ user.district|default:'-' }}</span>
+                        <span class="detail-label">Church</span>
+                        <span class="detail-value">{{ user.church|default:'-' }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Seat No</span>
                         <span class="detail-value">{{ user.seat_no|default:'-' }}</span>
                     </div>
-                    <div class="detail-item" style="grid-column: 1 / -1;">
+                    <div class="detail-item">
                         <span class="detail-label">Constituency</span>
                         <span class="detail-value">{{ user.constituency|default:'-' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Category</span>
+                        <span class="detail-value">
+                            {% if user.category|upper == 'PB' %}Presbyters
+                            {% elif user.category|upper == 'LP' %}Laypersons
+                            {% elif user.category|upper == 'DO' %}Diocesan Officers
+                            {% elif user.category|upper == 'NOM' %}Nominee
+                            {% else %}{{ user.category|default:'-' }}{% endif %}
+                        </span>
                     </div>
                 </div>
                 

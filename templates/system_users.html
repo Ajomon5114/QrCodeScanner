@@ -8,23 +8,23 @@
     .user-table {
         width: 100%;
         border-collapse: collapse;
-        color: #f1f5f9;
+        color: var(--text-main);
         font-size: 0.9rem;
     }
     .user-table th {
-        background: rgba(255,255,255,0.05);
+        background: var(--hover-bg);
         padding: 12px 16px;
         text-align: left;
         font-weight: 600;
-        color: #94a3b8;
+        color: var(--text-muted);
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .user-table td {
         padding: 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid var(--border);
         vertical-align: middle;
     }
-    .user-table tr:hover { background: rgba(255,255,255,0.02); }
+    .user-table tr:hover { background: var(--hover-bg); }
     
     .badge-super {
         background: rgba(139, 92, 246, 0.2);
@@ -43,22 +43,11 @@
         border: 1px solid rgba(59, 130, 246, 0.3);
     }
     
-    .action-btn {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-        border: 1px solid #ef4444;
-        border-radius: 6px;
-        padding: 6px 12px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        transition: 0.2s;
-    }
-    .action-btn:hover { background: rgba(239, 68, 68, 0.2); }
     .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
     .add-form {
-        background: rgba(15,23,42,0.7);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: var(--card-bg);
+        border: 1px solid var(--border);
         border-radius: 16px;
         padding: 20px;
         margin-bottom: 30px;
@@ -68,14 +57,15 @@
         flex-wrap: wrap;
     }
     .form-group { flex: 1; min-width: 200px; }
-    .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
     .form-group input, .form-group select {
         width: 100%;
-        background: rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.15);
-        color: white;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
         padding: 10px 14px;
         border-radius: 8px;
+        box-sizing: border-box;
     }
     .add-btn {
         background: var(--primary);
@@ -93,11 +83,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 1000px; margin: 0; width: 100%;">
+<div class="container" style="max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box;">
     
     <div style="margin-bottom: 25px;">
         <h2 style="margin:0; font-size:1.4rem;">Add New User</h2>
-        <p style="margin:4px 0 0; color:#94a3b8; font-size:0.9rem;">Create accounts for your team to access the system.</p>
+        <p style="margin:4px 0 0; color: var(--text-muted); font-size:0.9rem;">Create accounts for your team to access the system.</p>
     </div>
     
     <form class="add-form" method="post" action="{% url 'add_system_user' %}">
@@ -121,7 +111,7 @@
         <button type="submit" class="add-btn"><i class="fas fa-plus"></i> Create User</button>
     </form>
     
-    <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:16px; overflow:hidden;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius:16px; overflow-x: auto;">
         <table class="user-table">
             <thead>
                 <tr>
@@ -153,7 +143,7 @@
                     <td>
                         <form method="post" action="{% url 'delete_system_user' u.id %}" onsubmit="return confirm('Are you sure you want to delete {{ u.username }}?');" style="margin:0;">
                             {% csrf_token %}
-                            <button type="submit" class="action-btn" {% if u.id == request.user.id %}disabled title="You cannot delete yourself"{% endif %}>
+                            <button type="submit" class="action-btn del-btn" {% if u.id == request.user.id %}disabled title="You cannot delete yourself"{% endif %}>
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </form>
@@ -161,7 +151,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3" style="text-align:center; color:#94a3b8; padding:30px;">No users found.</td>
+                    <td colspan="3" style="text-align:center; color: var(--text-muted); padding:30px;">No users found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

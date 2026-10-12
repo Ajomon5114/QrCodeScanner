@@ -1,26 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}Registration Scanner{% endblock %}
-{% block page_title %}Barcode Scanner{% endblock %}
+{% block title %}CSI MKD Council 2026 - Attendance Tracker{% endblock %}
+{% block page_title %}Registration Counter Scanner{% endblock %}
 
 {% block extra_head %}
     <style>
         .scanner-tabs {
             display: flex;
             margin-bottom: 20px;
-            background: rgba(0,0,0,0.2);
+            background: var(--input-bg);
             border-radius: 8px;
             padding: 5px;
+            gap: 5px;
         }
         .scanner-tab {
             flex: 1; padding: 10px; text-align: center;
             cursor: pointer; border-radius: 6px;
             transition: 0.3s; font-weight: 600;
+            color: var(--text-muted);
         }
         .scanner-tab.active { background: var(--primary); color: white; }
         #reader {
             width: 100%; border-radius: 12px; overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.1);
+            border: 2px solid var(--border);
             background: white; color: black;
         }
         #reader button {
@@ -30,6 +32,30 @@
         #reader a { color: #3b82f6; }
         #reader video { border-radius: 12px; }
         #camera-loading { color: var(--text-muted); padding: 20px; text-align: center; }
+
+        @keyframes pulse-icon {
+            0% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.85; }
+        }
+        .gun-scanner-card {
+            padding: 35px 25px;
+            text-align: center;
+            border: 2px dashed rgba(59, 130, 246, 0.4);
+            border-radius: 16px;
+            background: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+        .gun-scanner-card:hover {
+            border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.7);
+        }
+        .gun-icon {
+            font-size: 2.8rem;
+            color: #3b82f6;
+            margin-bottom: 12px;
+            animation: pulse-icon 2s infinite;
+        }
 
         /* POPUP OVERLAY */
         .scan-overlay {
@@ -46,18 +72,18 @@
         @keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
 
         .scan-popup {
-            background: #1e293b;
-            border: 1px solid rgba(255,255,255,0.12);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 20px;
             padding: 30px;
             max-width: 420px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
         }
-        .scan-popup.success-popup { border-top: 4px solid #22c55e; }
-        .scan-popup.error-popup   { border-top: 4px solid #ef4444; }
-        .scan-popup.warning-popup { border-top: 4px solid #f59e0b; }
+        .scan-popup.success-popup { border-top: 4px solid var(--success); }
+        .scan-popup.error-popup   { border-top: 4px solid var(--danger); }
+        .scan-popup.warning-popup { border-top: 4px solid var(--warning); }
 
         .popup-status-icon { font-size: 2.5rem; margin-bottom: 6px; }
         .popup-avatar {
@@ -65,7 +91,7 @@
             object-fit: cover; border: 4px solid #22c55e;
             margin: 12px auto 16px; display: block;
         }
-        .popup-name { font-size: 1.6rem; font-weight: 800; color: white; margin: 8px 0 6px; }
+        .popup-name { font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin: 8px 0 6px; }
         .popup-badge {
             display: inline-block;
             background: rgba(34,197,94,0.15);
@@ -80,20 +106,20 @@
             display: grid; grid-template-columns: 1fr 1fr;
             gap: 10px; margin: 16px 0; text-align: left;
         }
-        .popup-detail-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 14px; }
-        .popup-detail-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; }
-        .popup-detail-value { font-size: 0.95rem; font-weight: 600; color: white; margin-top: 2px; }
+        .popup-detail-item { background: var(--hover-bg); border-radius: 10px; padding: 10px 14px; }
+        .popup-detail-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .popup-detail-value { font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-top: 2px; }
 
         .popup-next-btn {
             width: 100%; padding: 14px;
-            background: var(--primary); color: white;
+            background: var(--primary); color: var(--text-main);
             border: none; border-radius: 12px;
             font-size: 1rem; font-weight: 700;
             cursor: pointer; margin-top: 10px;
             transition: opacity 0.2s; letter-spacing: 0.5px;
         }
         .popup-next-btn:hover { opacity: 0.85; }
-        .popup-msg { font-size: 1.1rem; color: white; margin: 10px 0 20px; }
+        .popup-msg { font-size: 1.1rem; color: var(--text-main); margin: 10px 0 20px; }
     </style>
 {% endblock %}
 
@@ -104,6 +130,8 @@
             <p>Scan QR code to mark attendance</p>
         </div>
 
+        {% if request.user.is_superuser %}
+        <!-- SuperAdmin Mode: Full manual input box + camera tab -->
         <div class="scanner-tabs">
             <div class="scanner-tab active" id="tab-physical"><i class="fas fa-barcode"></i> USB/Bluetooth</div>
             <div class="scanner-tab" id="tab-camera"><i class="fas fa-camera"></i> Phone/Webcam</div>
@@ -114,11 +142,43 @@
                 <input type="text" id="scanner-input" placeholder="Ready to scan..." autocomplete="off" autofocus>
                 <div id="status-indicator" class="status-ready">Ready</div>
             </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; text-align: center;">
+                <i class="fas fa-shield-alt"></i> SuperAdmin: Manual seat entry & scanner gun enabled
+            </div>
         </div>
 
         <div id="camera-scanner-container" style="display:none; text-align:center; margin-bottom:20px;">
             <div id="reader"></div>
         </div>
+        {% else %}
+        <!-- Admin User Mode: Manual seat entry REMOVED -->
+        <div class="scanner-tabs">
+            <div class="scanner-tab active" id="tab-gun"><i class="fas fa-barcode"></i> Barcode Scanner</div>
+            <div class="scanner-tab" id="tab-camera"><i class="fas fa-camera"></i> Phone/Webcam</div>
+        </div>
+
+        <!-- 1. Hardware Barcode Gun Only (Default Active, No manual typing) -->
+        <div id="gun-scanner-container" style="display:block; margin-bottom:20px;">
+            <div class="gun-scanner-card">
+                <div class="gun-icon"><i class="fas fa-barcode"></i></div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">Barcode Scanner Ready</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+                    Aim your handheld USB or Bluetooth barcode scanner at the delegate badge QR code.
+                </p>
+                <div id="status-indicator-gun" class="status-ready" style="display: inline-block; padding: 6px 18px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">
+                    <i class="fas fa-wifi"></i> READY TO SCAN
+                </div>
+                <div style="margin-top: 16px; font-size: 0.8rem; color: #94a3b8; background: var(--hover-bg); padding: 10px 14px; border-radius: 8px;">
+                    <i class="fas fa-lock"></i> <strong>Notice:</strong> Manual seat typing is disabled for registration counters. Only hardware barcode scanner or camera scans are accepted.
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Camera Scanner (Second tab) -->
+        <div id="camera-scanner-container" style="display:none; text-align:center; margin-bottom:20px;">
+            <div id="reader"></div>
+        </div>
+        {% endif %}
 
         <div id="alert-box" class="alert-box" style="display:none;"></div>
     </div>
@@ -132,7 +192,6 @@
             <div class="popup-badge" id="popup-badge">Marked Present</div>
 
             <div class="popup-details" id="popup-details">
-
                 <div class="popup-detail-item">
                     <div class="popup-detail-label">Church</div>
                     <div class="popup-detail-value" id="popup-church">-</div>
@@ -159,5 +218,8 @@
         </div>
     </div>
 
-    <script src="/static/app.js?v=4"></script>
+    <script>
+        window.IS_SUPERUSER = {{ request.user.is_superuser|yesno:"true,false" }};
+    </script>
+    <script src="/static/app.js?v=5"></script>
 {% endblock %}

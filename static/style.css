@@ -4,17 +4,30 @@
     --success: #10b981;
     --danger: #ef4444;
     --warning: #f59e0b;
+    --bg-dark: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --input-bg: #f1f5f9;
+    --hover-bg: #f1f5f9;
+}
+
+[data-theme="dark"] {
     --bg-dark: #0f172a;
     --card-bg: #1e293b;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.25);
+    --hover-bg: rgba(255, 255, 255, 0.05);
 }
 
 body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, var(--bg-dark) 0%, #172033 100%);
+    background: var(--bg-dark);
     color: var(--text-main);
     min-height: 100vh;
     display: flex;
@@ -26,25 +39,12 @@ body {
     width: 100%;
     max-width: 550px;
     background: var(--card-bg);
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 40px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    border: 1px solid var(--border);
     position: relative;
     overflow: hidden;
-}
-
-/* Subtle glow effect for premium feel */
-.container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 50%);
-    z-index: 0;
-    pointer-events: none;
 }
 
 .header {
@@ -58,9 +58,7 @@ body {
     margin: 0 0 8px 0;
     font-size: 2.2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary);
 }
 
 .header p {
@@ -79,9 +77,9 @@ body {
     width: 100%;
     padding: 22px;
     font-size: 1.2rem;
-    background: rgba(15, 23, 42, 0.6);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
     color: var(--text-main);
     text-align: center;
     transition: all 0.3s ease;
@@ -94,10 +92,11 @@ body {
 #scanner-input:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    background: var(--card-bg);
 }
 
 #scanner-input::placeholder {
-    color: rgba(148, 163, 184, 0.5);
+    color: #94a3b8;
     letter-spacing: normal;
     font-family: 'Inter', sans-serif;
 }
@@ -134,12 +133,12 @@ body {
 .profile-card {
     display: flex;
     align-items: flex-start;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
     padding: 25px;
     gap: 25px;
-    box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.05);
 }
 
 .profile-card img {
@@ -148,7 +147,7 @@ body {
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--success);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
     background: var(--bg-dark);
 }
 
@@ -170,7 +169,7 @@ body {
 }
 
 .info-item {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--input-bg);
     padding: 8px 12px;
     border-radius: 8px;
     display: flex;
@@ -194,7 +193,7 @@ body {
 .success-text {
     margin: 0;
     color: var(--success);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.95rem;
     display: flex;
     align-items: center;
@@ -205,18 +204,20 @@ body {
 .members-table {
     width: 100%;
     border-collapse: collapse;
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
     margin-top: 10px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 .members-table th, .members-table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border);
 }
 .members-table th {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--input-bg);
     font-weight: 600;
     color: var(--text-muted);
     font-size: 0.85rem;
@@ -227,7 +228,7 @@ body {
     border-bottom: none;
 }
 .members-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--hover-bg);
 }
 
 .alert-box {
@@ -242,15 +243,15 @@ body {
 }
 
 .alert-error {
-    background: rgba(239, 68, 68, 0.1);
-    color: #fca5a5;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #f87171;
 }
 
 .alert-warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: #fcd34d;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fbbf24;
 }
 
 @keyframes slideUp {

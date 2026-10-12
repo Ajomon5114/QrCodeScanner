@@ -5,58 +5,41 @@
 
 {% block content %}
 <style>
-    .filter-bar {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-        background: rgba(15, 23, 42, 0.6);
-        padding: 15px;
-        border-radius: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .filter-bar select,
-    .filter-bar input[type=text] {
-        padding: 8px 12px;
-        border-radius: 6px;
-        background: rgba(0,0,0,0.2);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-sizing: border-box;
-        min-width: 150px;
-    }
-    .filter-bar select option {
-        background: #1e293b;
-        color: white;
-    }
-    .action-btn {
-        background: rgba(255,255,255,0.1);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 0.85rem;
-        margin-right: 5px;
-        display: inline-block;
-        transition: 0.3s;
-    }
-    .action-btn:hover { background: rgba(255,255,255,0.2); }
-    .delete-btn { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: none; cursor: pointer; }
-    .delete-btn:hover { background: #ef4444; color: white; }
+
     
     @media print {
         .filter-bar, .action-col, .action-cell, .top-navbar, .sidebar { display: none !important; }
-        .main-content { margin: 0 !important; padding: 0 !important; }
-        body { background: white; color: black; }
-        .members-table th { color: black; border-bottom: 1px solid #000; }
-        .members-table td { color: black; border-bottom: 1px solid #ccc; }
+        .main-content, .layout-wrapper { 
+            margin: 0 !important; 
+            padding: 0 !important;
+            height: auto !important;
+            overflow: visible !important;
+            display: block !important;
+        }
+        body { 
+            display: block !important; 
+            background: white !important; 
+            color: black !important; 
+            min-height: auto !important;
+        }
+        .container { 
+            max-width: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .members-table { background: white !important; }
+        .members-table th { color: black !important; border-bottom: 2px solid #000 !important; background: white !important; }
+        .members-table td { color: black !important; border-bottom: 1px solid #ccc !important; }
+        div[style*="overflow-x: auto"] { overflow: visible !important; }
     }
 </style>
 
-<div class="container" style="max-width: 1000px; margin: 0; width: 100%;">
-    <div class="filter-bar">
-        <form method="GET" style="display: flex; gap: 15px; align-items: center; margin: 0; flex-wrap: wrap; flex: 1;">
-            <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or ID...">
+<div class="container" style="max-width: 100%; padding: 0; margin: 0 auto; width: 100%; box-sizing: border-box;">
+    <div class="filter-bar" style="display: flex; flex-direction: column; gap: 15px;">
+        <form method="GET" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; width: 100%;">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or ID..." style="flex-grow: 1; min-width: 200px;">
             
             <select name="church">
                 <option value="">All Churches</option>
@@ -76,15 +59,9 @@
                 <option value="">All Categories</option>
                 {% for cat in categories %}
                 <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
-                    {% if cat|upper == 'PB' %}Presbyters{% elif cat|upper == 'LP' %}Laypersons{% else %}{{ cat }}{% endif %}
+                    {% if cat|upper == 'PB' %}Presbyters{% elif cat|upper == 'LP' %}Laypersons{% elif cat|upper == 'DO' %}Diocesan Officers{% elif cat|upper == 'NOM' %}Nominee{% else %}{{ cat }}{% endif %}
                 </option>
                 {% endfor %}
-            </select>
-
-            <select name="status">
-                <option value="">All Statuses</option>
-                <option value="attended" {% if selected_status == 'attended' %}selected{% endif %}>Attended</option>
-                <option value="not_attended" {% if selected_status == 'not_attended' %}selected{% endif %}>Not Attended</option>
             </select>
 
             <button type="submit" class="upload-btn" style="width: auto; padding: 8px 20px;">Filter</button>
@@ -92,11 +69,11 @@
         </form>
 
         {% if request.user.is_superuser %}
-        <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 15px;">
             <button type="button" id="toggleBulkMode" class="upload-btn" style="background: #64748b; width: auto; padding: 8px 15px;"><i class="fas fa-check-square"></i> Select to Delete</button>
             <button type="submit" form="bulkDeleteForm" id="deleteSelectedBtn" class="upload-btn" style="background: #ef4444; width: auto; padding: 8px 15px; display: none;" onclick="return confirm('Delete all selected users?');"><i class="fas fa-trash"></i> Delete Selected</button>
-            <button onclick="window.print()" class="upload-btn" style="background: #3b82f6; width: auto; padding: 8px 15px;"><i class="fas fa-file-pdf"></i> Export PDF</button>
-            <a href="/delegates/export/csv/" class="upload-btn" style="background: #10b981; width: auto; padding: 8px 15px; text-decoration: none; display: inline-block;"><i class="fas fa-file-excel"></i> Export Excel</a>
+            <a href="/delegates/export/pdf/?{{ request.GET.urlencode }}" target="_blank" class="upload-btn" style="background: #3b82f6; width: auto; padding: 8px 15px; text-decoration: none; display: inline-block;"><i class="fas fa-file-pdf"></i> Export PDF</a>
+            <a href="/delegates/export/csv/?{{ request.GET.urlencode }}" class="upload-btn" style="background: #10b981; width: auto; padding: 8px 15px; text-decoration: none; display: inline-block;"><i class="fas fa-file-excel"></i> Export Excel</a>
         </div>
         {% endif %}
     </div>
@@ -116,7 +93,6 @@
                     <th>Seat No</th>
                     <th>Constituency</th>
                     <th>Category</th>
-                    <th>Status</th>
                     {% if request.user.is_superuser %}
                     <th class="action-col">Actions</th>
                     {% endif %}
@@ -133,30 +109,29 @@
                     <td>{{ user.church|default:'-' }}</td>
                     <td>{{ user.seat_no|default:'-' }}</td>
                     <td>{{ user.constituency|default:'-' }}</td>
-                    <td>
+                    <td style="white-space: nowrap;">
                         {% if user.category|upper == 'PB' %}
                             Presbyters
                         {% elif user.category|upper == 'LP' %}
                             Laypersons
+                        {% elif user.category|upper == 'DO' %}
+                            Diocesan Officers
+                        {% elif user.category|upper == 'NOM' %}
+                            Nominee
                         {% else %}
                             {{ user.category|default:'-' }}
                         {% endif %}
                     </td>
-                    <td>
-                        {% if user.has_attended %}
-                        <span style="color: #10b981; font-weight: 600;">Attended</span>
-                        {% else %}
-                        <span style="color: #ef4444; font-weight: 600;">Not Attended</span>
-                        {% endif %}
-                    </td>
                     {% if request.user.is_superuser %}
                     <td class="action-cell" style="white-space: nowrap;">
-                        <a href="{% url 'single_qr' user.user_id %}" class="action-btn" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" title="Print Badge"><i class="fas fa-id-badge"></i></a>
-                        <a href="{% url 'edit_delegate' user.user_id %}" class="action-btn" title="Edit"><i class="fas fa-edit"></i></a>
-                        <form method="POST" action="{% url 'delete_delegate' user.user_id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                            {% csrf_token %}
-                            <button type="submit" class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-                        </form>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <a href="{% url 'single_qr' user.user_id %}" class="action-btn" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" title="Print Badge"><i class="fas fa-id-badge"></i></a>
+                            <a href="{% url 'edit_delegate' user.user_id %}" class="action-btn edit-btn" title="Edit"><i class="fas fa-edit"></i></a>
+                            <form method="POST" action="{% url 'delete_delegate' user.user_id %}" style="margin: 0; display: inline-flex;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                {% csrf_token %}
+                                <button type="submit" class="action-btn del-btn"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
                     </td>
                     {% endif %}
                 </tr>

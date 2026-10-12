@@ -16,6 +16,7 @@ __pycache__/
 db.sqlite3
 *.csv
 
-# Media / Uploads
+# Media & Generated Output Files
 media/
-static/images/delegates/
+*.pdf
+pdfs/

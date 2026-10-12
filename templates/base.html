@@ -1,23 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Attendance System{% endblock %}</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/layout.css?v=2">
+    <link rel="stylesheet" href="/static/style.css?v=11">
+    <link rel="stylesheet" href="/static/layout.css?v=11">
     <link rel="stylesheet" href="/static/fa.min.css">
+    <link rel="icon" href="data:,">
     {% block extra_head %}{% endblock %}
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            if (window.location.pathname === '/') { location.reload(); }
+        }
+    </script>
 </head>
+
 <body>
     <div class="layout-wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <i class="fas fa-qrcode"></i>
-                <h2>ScanTrack</h2>
+                <h2 style="font-size: 1.1rem; line-height: 1.2; text-align: left;">CSI MKD Council 2026<br><span
+                        style="font-size: 0.8rem; font-weight: 400;">Attendance Tracker</span></h2>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <a href="/" class="sidebar-link {% if request.path == '/' %}active{% endif %}">
                     <i class="fas fa-home"></i> Dashboard
@@ -25,7 +42,7 @@
                 <a href="/attendance/" class="sidebar-link {% if '/attendance' in request.path %}active{% endif %}">
                     <i class="fas fa-clipboard-list"></i> Attendance Report
                 </a>
-                
+
                 {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
                 <a href="/scanner/" class="sidebar-link {% if '/scanner' in request.path %}active{% endif %}">
                     <i class="fas fa-camera"></i> Launch Scanner
@@ -38,7 +55,7 @@
                 {% if request.user.is_superuser %}
                 <div class="sidebar-divider">Super Admin</div>
                 <a href="/admin-upload/" class="sidebar-link {% if '/admin-upload' in request.path %}active{% endif %}">
-                    <i class="fas fa-file-excel"></i> Upload Excel
+                    <i class="fas fa-cloud-upload-alt"></i> Upload Data / Images
                 </a>
                 <a href="/barcodes/" class="sidebar-link {% if '/barcodes' in request.path %}active{% endif %}">
                     <i class="fas fa-qrcode"></i> Print QR Codes
@@ -58,9 +75,17 @@
                 <div class="navbar-title">
                     {% block page_title %}Dashboard{% endblock %}
                 </div>
-                <div class="navbar-user">
-                    <span><i class="fas fa-user-circle"></i> {{ request.user.username|title }}</span>
-                    <form action="/accounts/logout/" method="post" style="margin: 0; display: inline;">
+                <div class="navbar-user" style="display:flex; align-items:center; gap: 15px;">
+                    <button onclick="toggleTheme()" class="action-btn"
+                        style="padding: 8px 12px; border-radius:8px; border: 1px solid var(--border);"
+                        title="Toggle Theme">
+                        <i class="fas fa-adjust"></i>
+                    </button>
+                    <span
+                        style="display: flex; align-items: center; gap: 6px; color: var(--text-main); font-weight: 600; padding: 8px 0; line-height: 1; font-size: 0.9rem;"><i
+                            class="fas fa-user-circle"></i> {{ request.user.username|title }}</span>
+                    <form action="/accounts/logout/" method="post"
+                        style="margin: 0; display: flex; align-items: center;">
                         {% csrf_token %}
                         <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
                     </form>
@@ -74,4 +99,5 @@
         </div>
     </div>
 </body>
+
 </html>

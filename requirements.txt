@@ -1,4 +1,7 @@
-django>=5.0
+Django>=5.0
 pandas>=2.0.0
 openpyxl>=3.1.0
-gunicorn>=21.2.0
+qrcode>=8.0
+pillow>=10.0.0
+reportlab>=4.0.0
+pyinstaller>=6.0.0

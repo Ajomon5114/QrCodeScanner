@@ -2,26 +2,139 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Attendance System</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CSI MKD Council</title>
+    <link rel="stylesheet" href="/static/style.css?v=7">
+    <link rel="stylesheet" href="/static/layout.css?v=7">
+    <link rel="stylesheet" href="/static/fa.min.css">
+    <script>
+        // Check local storage for theme preference before rendering to prevent flashing
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+        }
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        .login-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .login-header p {
+            color: var(--text-muted);
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        .login-btn:hover {
+            background: var(--primary-hover);
+        }
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 400px; margin-top: 100px;">
-        <h2 style="text-align: center; margin-bottom: 20px;">System Login</h2>
-        <form method="post" class="admin-section" style="text-align: left;">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-qrcode"></i>
+            <h2>System Login</h2>
+            <p>CSI MKD Council 2026</p>
+        </div>
+        
+        <form method="post">
             {% csrf_token %}
-            <div style="margin-bottom: 15px;">
-                <label>Username</label><br>
-                <input type="text" name="username" required style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
-            </div>
-            <div style="margin-bottom: 20px;">
-                <label>Password</label><br>
-                <input type="password" name="password" required style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
-            </div>
-            <button type="submit" class="upload-btn">Login</button>
+            
             {% if form.errors %}
-            <p style="color: #ef4444; margin-top: 15px; font-size: 0.9rem; text-align: center;">Invalid username or password.</p>
+            <div class="error-msg">
+                Invalid username or password. Please try again.
+            </div>
             {% endif %}
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required autocomplete="username" placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="login-btn">Secure Login <i class="fas fa-arrow-right" style="margin-left: 5px;"></i></button>
         </form>
     </div>
 </body>

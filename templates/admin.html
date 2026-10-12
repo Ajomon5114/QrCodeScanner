@@ -1,18 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %}Admin - Import Users{% endblock %}
-{% block page_title %}Upload Excel Data{% endblock %}
+{% block title %}Admin - Import Data & Images{% endblock %}
+{% block page_title %}Upload Data & Images{% endblock %}
 
 {% block extra_head %}
 <style>
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 24px;
+        margin-bottom: 25px;
+    }
     .admin-section {
-        background: rgba(15, 23, 42, 0.6);
+        background: var(--card-bg);
         border: 2px dashed rgba(255, 255, 255, 0.2);
         border-radius: 16px;
-        padding: 40px 20px;
+        padding: 30px 24px;
         text-align: center;
-        margin-bottom: 20px;
         transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .admin-section:hover {
         border-color: var(--primary);
@@ -22,30 +30,38 @@
         display: none;
     }
     .file-label {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         background: var(--primary);
-        color: white;
-        padding: 12px 24px;
+        color: var(--text-main);
+        padding: 12px 20px;
         border-radius: 8px;
         cursor: pointer;
         font-weight: 600;
-        transition: background 0.3s;
-        margin-bottom: 10px;
+        transition: background 0.3s, transform 0.1s;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
     }
     .file-label:hover {
         background: var(--primary-hover);
+        transform: translateY(-1px);
     }
     .upload-btn {
         background: var(--success);
-        color: white;
+        color: var(--text-main);
         padding: 12px 24px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
         font-weight: 600;
         font-size: 1rem;
-        transition: background 0.3s;
+        transition: background 0.3s, opacity 0.3s;
         width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     .upload-btn:hover {
         background: #059669;
@@ -53,60 +69,131 @@
     .upload-btn:disabled {
         background: var(--text-muted);
         cursor: not-allowed;
+        opacity: 0.7;
     }
-    #file-name {
+    .file-name-display {
         display: block;
-        margin-top: 10px;
+        margin-top: 8px;
         font-size: 0.9rem;
         color: var(--text-muted);
+        word-break: break-all;
+        min-height: 22px;
     }
     .note {
         font-size: 0.85rem;
         color: var(--text-muted);
         margin-top: 15px;
         text-align: left;
-        background: rgba(255,255,255,0.05);
-        padding: 15px;
+        background: var(--hover-bg);
+        padding: 14px;
         border-radius: 8px;
+        border: 1px solid var(--border);
     }
     .note ul {
         margin: 5px 0 0 0;
         padding-left: 20px;
     }
+    .note li {
+        margin-bottom: 4px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 900px; margin: 0 auto;">
-    <div class="header">
-        <h1>Admin Panel</h1>
-        <p>Upload Users from Excel</p>
+<div class="container" style="max-width: 1100px; margin: 0 auto;">
+    <div class="header" style="margin-bottom: 25px;">
+        <h1 style="font-size: 1.8rem; font-weight: 700;">Admin Management Panel</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Import delegates data and upload photos into the system</p>
     </div>
-    
-    <div class="admin-section">
-        <form id="upload-form">
-            <label for="excel-file" class="file-label">Choose Excel File</label>
-            <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" required>
-            <span id="file-name">No file selected</span>
-            
-            <div style="margin-top: 20px;">
-                <button type="submit" class="upload-btn" id="upload-btn">Upload and Import</button>
+
+    <div id="alert-box" class="alert-box" style="display: none; margin-bottom: 20px;"></div>
+
+    <div class="admin-grid">
+        <!-- 1. Excel / CSV Data Upload -->
+        <div class="admin-section">
+            <div>
+                <div style="font-size: 2.2rem; color: #10b981; margin-bottom: 10px;">
+                    <i class="fas fa-file-excel"></i>
+                </div>
+                <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 6px;">1. Import Delegates Data</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Upload Excel (.xlsx, .xls) or CSV file with delegates</p>
+
+                <form id="upload-form">
+                    <label for="excel-file" class="file-label">
+                        <i class="fas fa-file-upload"></i> Choose Excel / CSV File
+                    </label>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" required>
+                    <span id="file-name" class="file-name-display">No file selected</span>
+                    
+                    <div style="margin-top: 18px;">
+                        <button type="submit" class="upload-btn" id="upload-btn">
+                            <i class="fas fa-check-circle"></i> Upload and Import
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
-    </div>
 
-    <div id="alert-box" class="alert-box" style="display: none;"></div>
+            <div class="note">
+                <strong>Format required:</strong>
+                <ul>
+                    <li>File can be Excel (.xlsx, .xls) or CSV (.csv)</li>
+                    <li>Expected columns: <code>slno</code>, <code>name</code>, <code>image name</code>, <code>church</code>, <code>seat no</code>, <code>constituency</code>, <code>category</code></li>
+                </ul>
+            </div>
+        </div>
 
-    <div class="note">
-        <strong>Format required:</strong>
-        <ul>
-            <li>File can be an Excel file (.xlsx) or CSV (.csv)</li>
-            <li>Expected columns: <code>slno</code>, <code>name</code>, <code>image name</code>, <code>church</code>, <code>seat no</code>, <code>constituency</code>, <code>category</code></li>
-        </ul>
+        <!-- 2. Images Folder Upload -->
+        <div class="admin-section">
+            <div>
+                <div style="font-size: 2.2rem; color: #3b82f6; margin-bottom: 10px;">
+                    <i class="fas fa-images"></i>
+                </div>
+                <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 6px;">2. Upload Images Folder</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px;">Upload folder containing delegate photos</p>
+                
+                <div style="margin-bottom: 16px;">
+                    <span style="display: inline-block; background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">
+                        <i class="fas fa-photo-video"></i> Currently Stored: <span id="img-count-display">{{ images_count|default:0 }}</span> photos
+                    </span>
+                </div>
+
+                <form id="images-upload-form">
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <label for="folder-file" class="file-label" style="background: #3b82f6;">
+                            <i class="fas fa-folder-open"></i> Choose Images Folder
+                        </label>
+                        <input type="file" id="folder-file" webkitdirectory directory multiple>
+
+                        <label for="zip-file" class="file-label" style="background: #475569;">
+                            <i class="fas fa-file-archive"></i> or Choose ZIP
+                        </label>
+                        <input type="file" id="zip-file" accept=".zip,image/*" multiple>
+                    </div>
+
+                    <span id="images-folder-name" class="file-name-display">No folder or ZIP selected</span>
+                    
+                    <div style="margin-top: 18px;">
+                        <button type="submit" class="upload-btn" id="upload-images-btn" style="background: #2563eb;">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload & Replace Images
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="note">
+                <strong>Folder instructions:</strong>
+                <ul>
+                    <li>Click <strong>Choose Images Folder</strong> to select your folder of delegate photos.</li>
+                    <li>Or click <strong>Choose ZIP</strong> to upload a ZIP archive of images.</li>
+                    <li>Replaces previous images in <code>static/images</code> with the new photos matching delegate <code>image name</code>.</li>
+                </ul>
+            </div>
+        </div>
     </div>
     
-    <div class="members-section" style="margin-top: 40px; text-align: left;">
-        <h2 style="margin-bottom: 20px; font-size: 1.5rem;">Registered Members</h2>
+    <!-- Registered Members Table -->
+    <div class="members-section" style="margin-top: 30px; text-align: left;">
+        <h2 style="margin-bottom: 15px; font-size: 1.4rem; font-weight: 700;">Registered Members</h2>
         
         <div style="overflow-x: auto;">
             <table class="members-table">
@@ -133,6 +220,10 @@
                                 Presbyters
                             {% elif user.category|upper == 'LP' %}
                                 Laypersons
+                            {% elif user.category|upper == 'DO' %}
+                                Diocesan Officers
+                            {% elif user.category|upper == 'NOM' %}
+                                Nominee
                             {% else %}
                                 {{ user.category|default:'-' }}
                             {% endif %}
@@ -151,12 +242,22 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // --- Elements for Excel Upload ---
         const fileInput = document.getElementById('excel-file');
         const fileNameDisplay = document.getElementById('file-name');
         const uploadForm = document.getElementById('upload-form');
         const uploadBtn = document.getElementById('upload-btn');
         const alertBox = document.getElementById('alert-box');
 
+        // --- Elements for Images Folder Upload ---
+        const folderInput = document.getElementById('folder-file');
+        const zipInput = document.getElementById('zip-file');
+        const imagesFolderNameDisplay = document.getElementById('images-folder-name');
+        const imagesUploadForm = document.getElementById('images-upload-form');
+        const uploadImagesBtn = document.getElementById('upload-images-btn');
+        let selectedImageFiles = [];
+
+        // 1. Excel File Selection
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 fileNameDisplay.textContent = e.target.files[0].name;
@@ -165,11 +266,12 @@
             }
         });
 
+        // 1. Excel Form Submit
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (fileInput.files.length === 0) {
-                showError('Please select a file first', 'error');
+                showError('Please select an Excel or CSV file first', 'error');
                 return;
             }
 
@@ -178,7 +280,7 @@
             formData.append('file', file);
 
             uploadBtn.disabled = true;
-            uploadBtn.textContent = 'Uploading...';
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
             alertBox.style.display = 'none';
 
             try {
@@ -193,7 +295,7 @@
                     showError(data.message, 'success');
                     fileInput.value = '';
                     fileNameDisplay.textContent = 'No file selected';
-                    setTimeout(() => window.location.reload(), 1500); // Reload to show new users
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
                     showError(data.error || 'Upload failed', 'error');
                 }
@@ -202,10 +304,97 @@
                 showError('Network Error. Please try again.', 'error');
             } finally {
                 uploadBtn.disabled = false;
-                uploadBtn.textContent = 'Upload and Import';
+                uploadBtn.innerHTML = '<i class="fas fa-check-circle"></i> Upload and Import';
             }
         });
 
+        // 2. Folder Selection
+        folderInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                let folderName = 'Selected Folder';
+                if (files[0].webkitRelativePath) {
+                    folderName = files[0].webkitRelativePath.split('/')[0];
+                }
+                const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(f.name));
+                selectedImageFiles = imageFiles;
+                imagesFolderNameDisplay.innerHTML = `<strong style="color: var(--text-main);">${folderName}</strong> (${imageFiles.length} photos found)`;
+                zipInput.value = '';
+            } else {
+                selectedImageFiles = [];
+                imagesFolderNameDisplay.textContent = 'No folder or ZIP selected';
+            }
+        });
+
+        // 2. ZIP / Multiple Files Selection
+        zipInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                if (files.length === 1 && files[0].name.toLowerCase().endsWith('.zip')) {
+                    selectedImageFiles = files;
+                    imagesFolderNameDisplay.innerHTML = `<strong style="color: var(--text-main);">${files[0].name}</strong> (ZIP archive)`;
+                } else {
+                    const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(f.name));
+                    selectedImageFiles = imageFiles;
+                    imagesFolderNameDisplay.innerHTML = `<strong style="color: var(--text-main);">${imageFiles.length} photo(s) selected</strong>`;
+                }
+                folderInput.value = '';
+            } else {
+                selectedImageFiles = [];
+                imagesFolderNameDisplay.textContent = 'No folder or ZIP selected';
+            }
+        });
+
+        // 2. Images Form Submit
+        imagesUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedImageFiles || selectedImageFiles.length === 0) {
+                showError('Please choose a folder or ZIP archive containing images first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < selectedImageFiles.length; i++) {
+                formData.append('images', selectedImageFiles[i]);
+            }
+
+            uploadImagesBtn.disabled = true;
+            uploadImagesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & Replacing Images...';
+            alertBox.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/upload_images', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showError(data.message, 'success');
+                    folderInput.value = '';
+                    zipInput.value = '';
+                    selectedImageFiles = [];
+                    imagesFolderNameDisplay.textContent = 'No folder or ZIP selected';
+                    const countElem = document.getElementById('img-count-display');
+                    if (countElem && data.count !== undefined) {
+                        countElem.textContent = data.count;
+                    }
+                    setTimeout(() => window.location.reload(), 1800);
+                } else {
+                    showError(data.error || 'Images upload failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network Error during upload. For very large folders, consider uploading a ZIP file.', 'error');
+            } finally {
+                uploadImagesBtn.disabled = false;
+                uploadImagesBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload & Replace Images';
+            }
+        });
+
+        // Common Alert Display
         function showError(message, type) {
             alertBox.style.animation = 'none';
             alertBox.offsetHeight; 
@@ -214,15 +403,15 @@
             alertBox.textContent = message;
             
             if (type === 'success') {
-                alertBox.style.background = 'rgba(16, 185, 129, 0.1)';
-                alertBox.style.color = '#6ee7b7';
-                alertBox.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+                alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+                alertBox.style.color = '#34d399';
+                alertBox.style.border = '1px solid rgba(16, 185, 129, 0.3)';
                 alertBox.className = 'alert-box';
             } else {
-                alertBox.style.background = '';
-                alertBox.style.color = '';
-                alertBox.style.border = '';
-                alertBox.className = `alert-box alert-${type}`;
+                alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                alertBox.style.color = '#f87171';
+                alertBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                alertBox.className = 'alert-box alert-error';
             }
             
             alertBox.style.display = 'block';
@@ -230,7 +419,7 @@
             clearTimeout(window.errorTimeout);
             window.errorTimeout = setTimeout(() => {
                 alertBox.style.display = 'none';
-            }, 5000);
+            }, 6000);
         }
     });
 </script>
